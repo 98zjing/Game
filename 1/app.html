@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		#cont{
+			position: fixed;
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			z-index: 5;
+		}
+		#app{
+			width: 600px;
+			height: 600px;
+			position: relative;
+			top:50%;
+			left: 50%;
+			transform: translate(-50%,-50%);
+		}
+		#app>ul{
+			margin: 0;
+			padding: 0;
+			list-style-type: none;
+			width: 100%;
+			height: 100%;
+			background: url('bg.jpg');
+		}
+		#start{
+			position: absolute;
+			left: 50%;
+			top:10px;
+			transform: translate(-50%,0);
+		}
+		#time{
+			position: absolute;
+			left: 50%;
+			top: 0;
+			transform: translate(-50%,0);
+			font-size: 30px;
+			color: red;
+			display: none;
+		}
+		#style{
+			width: 200px;
+			height: 200px;
+			margin: 0 auto;
+			position: absolute;
+			bottom: 0;
+			background: url(bg.jpg);
+			background-size: 100% 100%;
+		}
+	</style>
+</head>
+<body>
+	<div id="cont">
+		<div id="app" >
+			<ul></ul>
+		</div>
+		<button id="start">开始游戏</button>
+		<p id="time">0</p>
+	</div>
+	<div id="style"></div>
+</body>
+<script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js"></script>
+<script>
+	$(function(){
+		
+		/*开始的li*/
+		var startLi = null;
+		/*放下的li*/
+		var dropLi = null;
+		/**/
+		var age = 3;
+		$(document).on('dragstart',function(e){
+			var e = e || window.event;
+			startLi = e.target;
+		}).on("dragover",function(e){
+			var e = e || window.event;
+			e.preventDefault();
+		});
+		function start(){
+			$('#app>ul').on('drop',function(e){
+				dropLi = e.target;
+				game();
+				if(determine() == 'yes'){
+					$('#start').css('display','block');
+					$('#app>ul').html("");
+					$('#app>ul').off('drop');
+					alert('你赢了！');
+					age++;
+				}
+				console.log(determine());
+			});
+		}
+		/*玩游戏*/
+		function game(){
+			var le = startLi.left;
+			var top = startLi.top;
+			var index = startLi.index;
+			startLi.left = dropLi.left;
+			startLi.top = dropLi.top;
+			startLi.index = dropLi.index;
+			startLi.style.background = 'url(bg.jpg) no-repeat left '+ dropLi.left +
+									   'px top '+ dropLi.top +'px';
+			dropLi.left = le;
+			dropLi.top = top;						   
+			dropLi.index = index;						   
+			dropLi.style.background = 'url(bg.jpg) no-repeat left '+ le +
+									  'px top '+ top +'px';
+		}
+		/*游戏开始*/
+		$("#start").on('click',function(){
+			start();
+			/*游戏时间*/
+			var tms = 5000;
+			/*time*/
+			var time = null;
+			$('#time').css('display','block').html(tms);
+			$(this).css('display','none');
+			/**/
+			var arOne = addAr(age);
+			var arTwo = upsetAr(age);
+			time = setInterval(function(){
+				if(tms <= 0){
+					/*游戏时间到 游戏停止*/
+					clearInterval(time);
+					$('#start').css('display','block');
+					$('#app>ul>li').removeAttr('draggable');
+					$('#app>ul').off('drop');
+					return;
+				}
+				tms--;
+				$('#time').html(tms);
+			}, 1000);
+			imgs(arOne,arTwo,age);
+		});
+		/*游戏判定*/
+		function determine(){
+			var s = 0;
+			for(var i=0;i<$('#app>ul>li').length;i++){
+				if(i == $('#app>ul>li')[i].index)
+					s++;
+			}
+			if(s >= ($('#app>ul>li').length) - 1)
+			return 'yes';
+		}
+	})
+	function imgs(arOne,arTwo,age){
+		var wth = app.offsetWidth/age;
+		var heht = app.offsetHeight/age;
+		for(var i=0;i<arOne.length;i++){
+			var li = document.createElement("li");
+			li.style =  'width:' + wth + 'px;'+
+						'height:' + heht + 'px;'+
+						'position: absolute;'+
+						'left:'+arOne[i][1]+'px;'+
+						'top:'+arOne[i][0]+'px;'+
+						'background: url(bg.jpg) no-repeat left '+-arTwo[i][1]+
+						'px top '+-arTwo[i][0]+'px;';
+			li.left = -arTwo[i][1];
+			li.top = -arTwo[i][0];
+			li.index = arTwo[i][2];
+			$(li).attr('draggable','true');
+			app.children[0].appendChild(li);
+		}
+	}
+	/*创建数组*/
+	function addAr(age){
+		var ar = [];
+		var wth = app.offsetWidth/age;
+		var heht = app.offsetHeight/age;
+		for(var k=0,s = 0;k<age;k++){
+			for(var i=0;i<age;i++,s++){
+				var arr = [];
+				arr.push(k*wth);
+				arr.push(i*heht);
+				arr.push(s);
+				ar.push(arr);
+			}
+		}
+		return ar;
+	}
+	/*数组打乱*/
+	function upsetAr(age){
+		var ars = addAr(age);
+		var arr = [];
+		var len = ars.length;
+		for(var i=0;i<len;i++){
+			var index = parseInt(Math.random()*ars.length);
+			arr.push(ars[index]);
+			ars.splice(index,1);
+		}
+		return arr;
+	}
+	
+</script>
+</html>
